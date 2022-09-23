@@ -155,12 +155,12 @@ class PublicRooms(commands.Cog):
                                     if no_created:
                                         num = 1
                                     public_vc = await before.channel.edit(
-                                        name=sys['channel_name'].replace("{num}", str(num)),
+                                        name=sys['channel_name'].replace("{num}", str(num)).replace("{username}", member.display_name),
                                         reason=f"PublicRooms: {member.display_name} left room with custom name",
                                     )
                                 else:
                                     public_vc = await before.channel.edit(
-                                        name=sys['channel_name'].replace("{num}", str(num)),
+                                        name=sys['channel_name'].replace("{num}", str(num)).replace("{username}", member.display_name),
                                         position=position,
                                         reason=f"PublicRooms: {member.display_name} left room with custom name",
                                     )
@@ -232,14 +232,14 @@ class PublicRooms(commands.Cog):
                                 if no_created:
                                     num = 1
                                 public_vc = await member.guild.create_voice_channel(
-                                    name=sys['channel_name'].replace("{num}", str(num)),
+                                    name=sys['channel_name'].replace("{num}", str(num)).replace("{username}", member.display_name),
                                     category=after.channel.category,
                                     bitrate=min(sys['bitrate']*1000, member.guild.bitrate_limit),
                                     reason=f"PublicRooms: created by {member.display_name}",
                                 )
                             else:
                                 public_vc = await member.guild.create_voice_channel(
-                                    name=sys['channel_name'].replace("{num}", str(num)),
+                                    name=sys['channel_name'].replace("{num}", str(num)).replace("{username}", member.display_name),
                                     category=after.channel.category,
                                     position=position,
                                     bitrate=min(sys['bitrate'] * 1000, member.guild.bitrate_limit),
@@ -319,7 +319,8 @@ class PublicRooms(commands.Cog):
         """
         Add a new PublicRooms system in this server.
 
-        For the `channel_name_template`, enter a string, with `{num}` contained if you want it to be replaced with the number of active VCs.
+        For the `channel_name_template`, enter a string, with `{num}` contained if you want it to be replaced with the number of active VCs,
+        and {username} for it to be replace with the user's server nickname. 
         """
 
         if origin_channel.category and not origin_channel.category.permissions_for(ctx.guild.me).manage_channels:
@@ -384,6 +385,7 @@ class PublicRooms(commands.Cog):
         Edit the channel name template for a PublicRooms system in this server.
 
         Enter a string, with `{num}` contained if you want it to be replaced with the number of active VCs.
+        and {username} for it to be replace with the user's server nickname.
         """
 
         async with self.config.guild(ctx.guild).systems() as systems:
