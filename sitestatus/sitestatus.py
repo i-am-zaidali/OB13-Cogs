@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -230,6 +230,7 @@ class SiteStatus(commands.Cog):
                                 latency = time.perf_counter() - start
                                 code = (response.status, response.reason)
                     except (aiohttp.InvalidURL, aiohttp.ClientConnectorError):
+                        latency = None
                         code = (500, "Internal Server Error")
 
                     # If monitoring channel set up, then update name if necessary
@@ -304,7 +305,7 @@ class SiteStatus(commands.Cog):
         ).replace(
             "{reason}", code[1]
         ).replace(
-            "{latency}", f"{round(lat, 1)}s"
+            "{latency}", f"{round(lat, 1)}s" if isinstance(lat, float) else "N/A"
         )
 
     @staticmethod

@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -177,7 +177,7 @@ class Counting(commands.Cog):
 
         # Also ignore these
         try:
-            _ = int(message.content.strip())
+            _ = int(message.content.strip().split()[0])
             if message.id in self.deleted:
                 return self.deleted.remove(message.id)
         except ValueError:  # Message contains non-numerical characters
@@ -217,8 +217,12 @@ class Counting(commands.Cog):
             embed.description = "No users have counted yet."
         else:
             embed.description = "```py\nCounts | User\n"
-            for member, counts in member_counts[:10]:
-                embed.description += f"{str(counts).rjust(6)}   {ctx.guild.get_member(member).display_name}\n"
+            for member_id, counts in member_counts[:10]:
+                try:
+                    name = (ctx.guild.get_member(member_id) or (await ctx.bot.fetch_user(member_id))).display_name
+                except discord.HTTPException:
+                    name = "Unknown"
+                embed.description += f"{str(counts).rjust(6)}   {name}\n"
             embed.description += "```"
         return await ctx.send(embed=embed)
 
@@ -265,7 +269,7 @@ class Counting(commands.Cog):
         return await ctx.tick()
 
     @_counting_set.command(name="autoreset")
-    async def _auto_reset(self, ctx: commands.Context, *, message: str):
+    async def _auto_reset(self, ctx: commands.Context, *, message: str = ""):
         """
         Set the message to be sent on counter reset when a wrong number is sent (leave blank to turn off auto-reset).
 

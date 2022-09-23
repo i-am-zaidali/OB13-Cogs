@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import re
 import typing
 import functools
 import googletrans, googletrans.models
@@ -34,6 +35,8 @@ TRANSLATOR = googletrans.Translator()
 MISSING_INPUTS = "Please provide a message ID/link, some text to translate, or reply to the original message."
 LANGUAGE_NOT_FOUND = "An invalid language code was provided."
 TRANSLATION_FAILED = "Something went wrong while translating."
+
+CUSTOM_EMOJI = re.compile("<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")  # Thanks R.Danny
 
 
 class Translate(commands.Cog):
@@ -87,7 +90,7 @@ class Translate(commands.Cog):
         if to_reply and to_reply.channel.id != context.channel.id:
             to_reply = context.message
 
-        return to_translate, to_reply
+        return CUSTOM_EMOJI.sub("", to_translate or "").strip(), to_reply
 
     @staticmethod
     async def _result_embed(res: googletrans.models.Translated, color: discord.Color):
@@ -99,11 +102,14 @@ class Translate(commands.Cog):
 
     @commands.Cog.listener("on_message_without_command")
     async def _message_listener(self, message: discord.Message):
+
+        message_content = CUSTOM_EMOJI.sub("", message.content).strip()
+
         # Ignore these messages
         if (
                 message.author.bot or  # Message sent by bot
                 not message.guild or  # Message not in a guild
-                not message.content or  # Message content empty
+                not message_content or  # Message content empty
                 not message.channel.permissions_for(message.guild.me).send_messages or  # No send permissions
                 not message.channel.permissions_for(message.guild.me).embed_links or  # No embed permissions
                 not (dest_lang := (await self.config.guild(message.guild).auto()).get(str(message.channel.id)))  # Not in auto-channel
@@ -113,7 +119,7 @@ class Translate(commands.Cog):
         # Detect source language
         if (confidence := await self.config.guild(message.guild).auto_confidence()) is not None:
 
-            detect_task = functools.partial(TRANSLATOR.detect, text=message.content)
+            detect_task = functools.partial(TRANSLATOR.detect, text=message_content)
             try:
                 detect_result: googletrans.models.Detected = await self.bot.loop.run_in_executor(None, detect_task)
             except Exception:
@@ -123,7 +129,7 @@ class Translate(commands.Cog):
                 return
 
         # Translate
-        translate_task = functools.partial(TRANSLATOR.translate, text=message.content, dest=dest_lang)
+        translate_task = functools.partial(TRANSLATOR.translate, text=message_content, dest=dest_lang)
         try:
             translate_result: googletrans.models.Translated = await self.bot.loop.run_in_executor(None, translate_task)
         except Exception:
@@ -132,7 +138,10 @@ class Translate(commands.Cog):
         # Source and dest languages and text are both different
         if translate_result.src.lower() != translate_result.dest.lower() and translate_result.origin.lower() != translate_result.text.lower():
             result_embeds = await self._result_embed(translate_result, await self.bot.get_embed_color(message.channel))
-            await message.reply(embed=result_embeds[0], mention_author=False)
+            try:
+                await message.reply(embed=result_embeds[0], mention_author=False)
+            except discord.HTTPException:
+                await message.channel.send(embed=result_embeds[0])
             for e in result_embeds[1:]:
                 await message.channel.send(embed=e)
 
@@ -162,8 +171,10 @@ class Translate(commands.Cog):
                 return await ctx.channel.send(embed=discord.Embed(description=TRANSLATION_FAILED, color=discord.Color.red()))
 
             result_embeds = await self._result_embed(result, await ctx.embed_color())
-
-        await to_reply.reply(embed=result_embeds[0], mention_author=False)
+        try:
+            await to_reply.reply(embed=result_embeds[0], mention_author=False)
+        except discord.HTTPException:
+            await to_reply.channel.send(embed=result_embeds[0])
         for e in result_embeds[1:]:
             await to_reply.channel.send(embed=e)
 
@@ -193,8 +204,10 @@ class Translate(commands.Cog):
                 return await ctx.channel.send(embed=discord.Embed(description=TRANSLATION_FAILED, color=discord.Color.red()))
 
             result_embeds = await self._result_embed(result, await ctx.embed_color())
-
-        await to_reply.reply(embed=result_embeds[0], mention_author=False)
+        try:
+            await to_reply.reply(embed=result_embeds[0], mention_author=False)
+        except discord.HTTPException:
+            await to_reply.channel.send(embed=result_embeds[0])
         for e in result_embeds[1:]:
             await to_reply.channel.send(embed=e)
 
@@ -222,8 +235,10 @@ class Translate(commands.Cog):
             result_embed = discord.Embed(color=await ctx.embed_color())
             result_embed.add_field(name="Language", value=googletrans.LANGUAGES[result.lang.lower()].title(), inline=True)
             result_embed.add_field(name="Confidence", value=f"{int(result.confidence*100)}%", inline=True)
-
-        return await to_reply.reply(embed=result_embed, mention_author=False)
+        try:
+            await to_reply.reply(embed=result_embed, mention_author=False)
+        except discord.HTTPException:
+            await to_reply.channel.send(embed=result_embed)
 
     @commands.admin_or_permissions(manage_messages=True)
     @commands.group(name="translateset")

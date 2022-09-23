@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -231,7 +231,7 @@ class PrivateRooms(commands.Cog):
                         if log_channel:
                             await self._send_log(
                                 channel=log_channel,
-                                text=f"{member.mention} joined {before.channel.mention} and created `{private_vc.name}`",
+                                text=f"{member.mention} joined {after.channel.mention} and created `{private_vc.name}`",
                                 color=discord.Color.teal(),
                                 embed_links=embed_links,
                             )

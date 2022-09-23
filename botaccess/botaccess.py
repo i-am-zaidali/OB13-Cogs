@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 
 NOT_SUPPORTING = "You do not have BotAccess privileges!"
-THANKS = "Thank you for supporting my server! Here is my invite link: <{invite}>. You can add a BotAccess server with `[p]botaccess addserver <server ID>`."
+THANKS = "Thank you for supporting my server! Here is my invite link: <{invite}>. You can add a BotAccess server with `[p]botaccess servers add <server ID>`."
 EXPIRE = "Unfortunately, your BotAccess servers have expired as you are no longer a supporter."
 
 
@@ -431,7 +431,7 @@ class BotAccess(commands.Cog):
             return await ctx.send("Please provide `true` as the parameter to confirm.")
 
         async with ctx.typing():
-            to_leave: list[discord.Guild] = []
+            to_leave: typing.List[discord.Guild] = []
             if user:
                 if leave_servers:
                     servers = await self.config.user(user).servers()
@@ -499,7 +499,7 @@ class BotAccess(commands.Cog):
 
     async def _refresh_supporters(self):
         main_server_settings = await self.config.main_servers()
-        main_servers_list: list[discord.Guild] = []
+        main_servers_list: typing.List[discord.Guild] = []
         for g in main_server_settings.keys():
             if gu := self.bot.get_guild(int(g)):
                 main_servers_list.append(gu)
@@ -508,8 +508,8 @@ class BotAccess(commands.Cog):
         original_users = [u for u in original_settings.keys()]
         await self.config.clear_all_users()
         refreshed_settings = {}
-        new_users: list[discord.Member] = []
-        new_user_ids: list[int] = []
+        new_users: typing.List[discord.Member] = []
+        new_user_ids: typing.List[int] = []
 
         # Refresh settings
         for guild in main_servers_list:

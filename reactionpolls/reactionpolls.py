@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -218,7 +218,7 @@ class ReactionPolls(commands.Cog):
 
             del settings[str(channel.id)]
 
-        return await ctx.send(f"{channel.mention} is not longer a ReactionPoll channel for this server.")
+        return await ctx.send(f"{channel.mention} is no longer a ReactionPoll channel for this server.")
 
     @_reaction_polls.command(name="toggle")
     async def _toggle(self, ctx: commands.Context, channel: typing.Optional[discord.TextChannel], true_or_false: bool):

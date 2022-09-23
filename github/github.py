@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 Obi-Wan3
+Copyright (c) 2021-present Obi-Wan3
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -421,7 +421,7 @@ class GitHub(commands.Cog):
         if not feeds_string:
             return await ctx.send("No GitHub RSS feeds have been set up in this server yet.")
 
-        embeds: list[discord.Embed] = []
+        embeds: typing.List[discord.Embed] = []
         for page in pagify(feeds_string, delims=["\n\n"]):
             embeds.append(discord.Embed(
                 description=page,
@@ -554,7 +554,7 @@ class GitHub(commands.Cog):
         if guild_config["notify"]:
             await channel.send(embed=discord.Embed(
                 color=discord.Color.green(),
-                description=f"[[{user_repo_branch_token['repo']}:{user_repo_branch_token['branch']}]]({await self._repo_url(**user_repo_branch_token)}) has been added by {ctx.author.mention}"
+                description=f"[[{user_repo_branch_token['repo']}:{(await self._parse_url(parsed.feed.link+'.atom'))[2]}]]({await self._repo_url(**user_repo_branch_token)}) has been added by {ctx.author.mention}"
             ))
 
         # Send last feed entry
@@ -589,7 +589,7 @@ class GitHub(commands.Cog):
             channel = await self._get_feed_channel(ctx.guild.me, guild_config["channel"], to_remove["channel"])
             await channel.send(embed=discord.Embed(
                 color=discord.Color.red(),
-                description=f"[[{to_remove['repo']}:{to_remove['branch']}]]({await self._repo_url(**to_remove)}) has been removed by {ctx.author.mention}")
+                description=f"[[{to_remove['repo']}:{to_remove['branch'] or 'main'}]]({await self._repo_url(**to_remove)}) has been removed by {ctx.author.mention}")
             )
 
         return await ctx.send("Feed successfully removed.")
@@ -610,7 +610,7 @@ class GitHub(commands.Cog):
         if not feeds_string:
             return await ctx.send(f"No feeds found. Try adding one with `{ctx.clean_prefix}github add`!")
 
-        embeds: list[discord.Embed] = []
+        embeds: typing.List[discord.Embed] = []
         for page in pagify(feeds_string):
             embeds.append(discord.Embed(
                 description=page,
