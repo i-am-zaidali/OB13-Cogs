@@ -35,7 +35,7 @@ if typing.TYPE_CHECKING:
 else:
     TimeConverter = commands.converter.TimedeltaConverter(
         minimum=timedelta(hours=1),
-        allowed_units=["weeks", "days", "hours"],
+        allowed_units=["weeks", "days", "hours", "seconds", "minutes"],
         default_unit="days"
     )
 
